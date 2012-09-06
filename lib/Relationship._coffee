@@ -5,7 +5,21 @@ adjustError = util.adjustError
 
 PropertyContainer = require './PropertyContainer'
 
+#
+# The class corresponding to a Neo4j relationship.
+#
 module.exports = class Relationship extends PropertyContainer
+
+    #
+    # Construct a new wrapper around a Neo4j relationship with the given data
+    # directly from the server at the given Neo4j {GraphDatabase}.
+    #
+    # @private
+    # @param db {GraphDatbase}
+    # @param data {Object}
+    # @param start {Node}
+    # @param end {Node}
+    #
     constructor: (db, data, start, end) ->
         super db, data
 
@@ -17,18 +31,40 @@ module.exports = class Relationship extends PropertyContainer
         @_start = start or new Node db, {self: data.start}
         @_end = end or new Node db, {self: data.end}
 
-    # Language helpers:
+    ### Language helpers: ###
+
     get = (props) =>
         @::__defineGetter__ name, getter for name, getter of props
     set = (props) =>
         @::__defineSetter__ name, setter for name, setter of props
 
-    # Properties:
+    ### Properties: ###
+
+    #
+    # @property start {Node} The node this relationship goes from.
+    #
     get start: -> @_start or null
+
+    #
+    # @property end {Node} The node this relationship goes to.
+    #
     get end: -> @_end or null
+
+    #
+    # @property type {String} This relationship's type.
+    #
     get type: -> @_data.type
 
-    # Methods:
+    ### Methods: ###
+
+    #
+    # Persist or update this relationship in the database.
+    #
+    # @todo We should "return" (via callback) this relationship after the save
+    #   too, just like we do for the {Node} class.
+    #
+    # @param callback {Function}
+    #
     save: (_) ->
         try
             # TODO: check for actual modification
@@ -54,10 +90,20 @@ module.exports = class Relationship extends PropertyContainer
         catch error
             throw adjustError error
 
-    # Alias
+    #
+    # @see #delete
+    #
     del: @::delete
-    
-    # Index
+
+    #
+    # Add this relationship to the given relationship index under the given
+    # property key and value.
+    #
+    # @param index {String} The name of the index, e.g. `'likes'`.
+    # @param key {String} The property key to index under, e.g. `'created'`.
+    # @param value {Object} The property value to index under, e.g. `1346713658393`.
+    # @param callback {Function}
+    #
     index: (index, key, value, _) ->
         try
             # TODO
